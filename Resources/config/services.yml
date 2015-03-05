@@ -1,0 +1,25 @@
+parameters:
+#    xiidea_easy_menu_acl.example.class: Xiidea\EasyMenuAclBundle\Example
+
+services:
+
+      xiidea.easy_menu_acl.security.routeacl:
+          class: Xiidea\EasyMenuAclBundle\Security\RouteAcl
+          arguments: [ @security.access_map ]
+          public: false
+
+      xiidea.easy_menu_acl.menu_builder:
+          class: Xiidea\EasyMenuAclBundle\Menu\Builder
+          arguments: ["@knp_menu.factory"]
+          calls:
+              - [ setEventDispatcher,[ @event_dispatcher ] ]
+
+      xiidea.easy_menu_acl.access_filter:
+          class: Xiidea\EasyMenuAclBundle\Security\AccessFilter
+          arguments: [@security.context, @xiidea.easy_menu_acl.security.routeacl]
+
+      xiidea.easy_menu_acl_listener:
+        class: Xiidea\EasyMenuAclBundle\EventListener\EasyMenuPostBuildListener
+        arguments: [@xiidea.easy_menu_acl.access_filter]
+        tags:
+            - { name: kernel.event_listener, event: xiidea.easy_menu_acl_post_build, method: onMenuPostBuild }
