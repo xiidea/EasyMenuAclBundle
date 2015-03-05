@@ -186,7 +186,9 @@ class MenuBuilder extends ContainerAware
 
         //.....
 
-        return $this->container->get('xiidea.easy_menu_acl.access_filter')->apply($menu);
+        $this->container->get('xiidea.easy_menu_acl.access_filter')->apply($menu);
+
+        return $menu;
     }
 
 ```
