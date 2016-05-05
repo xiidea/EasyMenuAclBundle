@@ -3,22 +3,22 @@
 namespace Xiidea\EasyMenuAclBundle\Security;
 
 use Knp\Menu\ItemInterface;
-use Symfony\Component\Security\Core\SecurityContext;
+use Symfony\Component\Security\Core\Authorization\AuthorizationChecker;
 
 class AccessFilter {
 
     /**
-     * @var SecurityContext
+     * @var AuthorizationChecker
      */
-    private $context;
+    private $authorizationChecker;
     /**
      * @var RouteAcl
      */
     private $routeAcl;
 
-    public function __construct(SecurityContext $context, RouteAcl $routeAcl)
+    public function __construct(AuthorizationChecker $context, RouteAcl $routeAcl)
     {
-        $this->context = $context;
+        $this->authorizationChecker = $context;
         $this->routeAcl = $routeAcl;
     }
 
@@ -33,8 +33,8 @@ class AccessFilter {
 
         if(!empty($uri)) {
             if(false === $this->hsaAccess($uri)) {
-                  $menu->getParent()->removeChild($menu);
-                  return;
+                $menu->getParent()->removeChild($menu);
+                return;
             }
         }
 
@@ -45,7 +45,7 @@ class AccessFilter {
         }
 
         if(empty($uri) && $menu->getName() !='root' && !$menu->hasChildren()) {
-              $menu->getParent()->removeChild($menu);
+            $menu->getParent()->removeChild($menu);
         }
     }
 
@@ -57,7 +57,7 @@ class AccessFilter {
     {
         $roles = $this->routeAcl->getRoles($uri);
         foreach ($roles as $role) {
-            if ($this->context->isGranted($role)) {
+            if ($this->authorizationChecker->isGranted($role)) {
                 return true;
             }
         }
