@@ -3,22 +3,16 @@
 namespace Xiidea\EasyMenuAclBundle\Security;
 
 use Knp\Menu\ItemInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationChecker;
 
 class AccessFilter {
 
-    /**
-     * @var AuthorizationChecker
-     */
-    private $authorizationChecker;
     /**
      * @var RouteAcl
      */
     private $routeAcl;
 
-    public function __construct(AuthorizationChecker $context, RouteAcl $routeAcl)
+    public function __construct(RouteAcl $routeAcl)
     {
-        $this->authorizationChecker = $context;
         $this->routeAcl = $routeAcl;
     }
 
@@ -55,13 +49,6 @@ class AccessFilter {
      */
     private function hsaAccess($uri = "")
     {
-        $roles = $this->routeAcl->getRoles($uri);
-        foreach ($roles as $role) {
-            if ($this->authorizationChecker->isGranted($role)) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->routeAcl->isAccesible($uri);
     }
 }
