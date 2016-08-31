@@ -2,66 +2,58 @@
 
 namespace Xiidea\EasyMenuAclBundle\Security;
 
-use Knp\Menu\ItemInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationChecker;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
+use Symfony\Component\Security\Http\AccessMap;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Router;
 
-class AccessFilter {
+class RouteAcl
+{
+    /** @var TokenStorageInterface  */
+    private $tokenStorage;
 
-    /**
-     * @var AuthorizationChecker
-     */
-    private $authorizationChecker;
-    /**
-     * @var RouteAcl
-     */
-    private $routeAcl;
+    /** @var AccessDecisionManagerInterface  */
+    private $accessDecisionManager;
 
-    public function __construct(AuthorizationChecker $context, RouteAcl $routeAcl)
+    /** @var AccessMap  */
+    private $map;
+
+    /** @var Router  */
+    private $router;
+
+    public function __construct(TokenStorageInterface $tokenStorage,
+        AccessDecisionManagerInterface $accessDecisionManager,
+        AccessMap $map,
+        Router $router)
     {
-        $this->authorizationChecker = $context;
-        $this->routeAcl = $routeAcl;
+        $this->tokenStorage = $tokenStorage;
+        $this->accessDecisionManager = $accessDecisionManager;
+        $this->map = $map;
+        $this->router = $router;
     }
 
-    public function apply($getMenu)
+    public function isAccesible($path)
     {
-        $this->processMenuItem($getMenu);
-    }
-
-    private function processMenuItem(ItemInterface $menu){
-
-        $uri = $menu->getUri();
-
-        if(!empty($uri)) {
-            if(false === $this->hsaAccess($uri)) {
-                $menu->getParent()->removeChild($menu);
-                return;
-            }
+        if (null === $token = $this->tokenStorage->getToken()) {
+            return true;
         }
 
-        if($menu->hasChildren()) {
-            foreach($menu->getChildren() as $item) {
-                $this->processMenuItem($item);
-            }
+        $baseUrl = $this->router->getContext()->getBaseUrl();
+        $path = substr($path, strlen($baseUrl));
+
+        $request = Request::create($path, 'GET');
+
+        list($roles, $channel) = $this->map->getPatterns($request);
+
+        if (null === $roles) {
+            return true;
         }
 
-        if(empty($uri) && $menu->getName() !='root' && !$menu->hasChildren()) {
-            $menu->getParent()->removeChild($menu);
-        }
-    }
-
-    /**
-     * @param string $uri
-     * @return bool
-     */
-    private function hsaAccess($uri = "")
-    {
-        $roles = $this->routeAcl->getRoles($uri);
-        foreach ($roles as $role) {
-            if ($this->authorizationChecker->isGranted($role)) {
-                return true;
-            }
+        if (!$token->isAuthenticated()) {
+            return false;
         }
 
-        return false;
+        return $this->accessDecisionManager->decide($token, $roles, $request);
     }
 }

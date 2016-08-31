@@ -4,20 +4,22 @@ Easy Menu Acl Bundle
 A Symfony2 Bundle To Power up KnpMenuBundle. This bundle can be user to register menu with simple configuration. or
 can be used with zero configuration to filter menus as per security access level.
 
+**Note:** If you are using **Symfony** version **older then 2.6** you need to use [EasyMenuAclBundle 1.x](https://github.com/xiidea/EasyMenuAclBundle/tree/1.x)
+
 Install
 -------
 1. Add EasyMenuAclBundle in your composer.json
 2. Enable the Bundle
 3. Configure config.yml(Optional)
 
-### 1. Add EasyAuditBundle in your composer.json
+### 1. Add EasyMenuAclBundle in your composer.json
 
-Add EasyAuditBundle in your composer.json:
+Add EasyMenuAclBundle in your composer.json:
 
 ```js
 {
     "require": {
-        "xiidea/easy-menu-acl-bundle": "1.0.*@dev"
+        "xiidea/easy-menu-acl-bundle": "2.0.*@dev"
     }
 }
 ```
